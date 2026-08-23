@@ -1,0 +1,85 @@
+models:
+  - model_name: customer-churn-knn
+    algorithm: knn
+    framework: scikit-learn
+    runtime_class: tabular-cpu
+    task: binary_classification
+    alias: champion
+    version: 4
+    endpoint: /v1/models/customer-churn-knn:predict
+    input_schema: customer_features_v1
+    purpose: local_similarity_comparison
+    status: ready
+    validation_metrics: {primary_score: 0.74, pr_auc: 0.74, brier_score: 0.18}
+  - model_name: customer-churn-naive-bayes
+    algorithm: naive_bayes
+    framework: scikit-learn
+    runtime_class: tabular-cpu
+    task: binary_classification
+    alias: champion
+    version: 3
+    endpoint: /v1/models/customer-churn-naive-bayes:predict
+    input_schema: customer_features_v1
+    purpose: probabilistic_baseline
+    status: ready
+    validation_metrics: {primary_score: 0.71, pr_auc: 0.71, brier_score: 0.20}
+  - model_name: customer-churn-logistic
+    algorithm: logistic_regression
+    framework: scikit-learn
+    runtime_class: tabular-cpu
+    task: binary_classification
+    alias: champion
+    version: 8
+    endpoint: /v1/models/customer-churn-logistic:predict
+    input_schema: customer_features_v1
+    purpose: interpretable_baseline
+    status: ready
+    validation_metrics: {primary_score: 0.79, pr_auc: 0.79, brier_score: 0.15}
+  - model_name: customer-churn-random-forest
+    algorithm: random_forest
+    framework: scikit-learn
+    runtime_class: tabular-cpu
+    task: binary_classification
+    alias: champion
+    version: 12
+    endpoint: /v1/models/customer-churn-random-forest:predict
+    input_schema: customer_features_v1
+    purpose: nonlinear_tree_comparison
+    status: ready
+    validation_metrics: {primary_score: 0.81, pr_auc: 0.81, brier_score: 0.14}
+  - model_name: customer-churn-xgboost
+    algorithm: xgboost
+    framework: xgboost
+    runtime_class: tabular-cpu
+    task: binary_classification
+    alias: champion
+    version: 22
+    endpoint: /v1/models/customer-churn-xgboost:predict
+    input_schema: customer_features_v1
+    purpose: high_performance_candidate
+    status: ready
+    validation_metrics: {primary_score: 0.84, pr_auc: 0.84, brier_score: 0.12}
+  - model_name: property-value-linear
+    algorithm: linear_regression
+    framework: scikit-learn
+    runtime_class: tabular-cpu
+    task: regression
+    alias: champion
+    version: 5
+    endpoint: /v1/models/property-value-linear:predict
+    input_schema: property_features_v1
+    purpose: interpretable_baseline
+    status: ready
+    validation_metrics: {primary_score: 0.76, r2: 0.76}
+  - model_name: property-value-xgboost
+    algorithm: xgboost
+    framework: xgboost
+    runtime_class: tabular-cpu
+    task: regression
+    alias: challenger
+    version: 9
+    endpoint: /v1/models/property-value-xgboost:predict
+    input_schema: property_features_v1
+    purpose: nonlinear_comparison
+    status: ready
+    validation_metrics: {primary_score: 0.83, r2: 0.83}

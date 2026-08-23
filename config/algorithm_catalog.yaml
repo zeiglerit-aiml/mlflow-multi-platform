@@ -1,0 +1,50 @@
+algorithms:
+  - name: logistic_regression
+    family: linear
+    framework: scikit-learn
+    supported_tasks: [binary_classification, multiclass_classification]
+    strengths: [interpretable_baseline, calibrated_probabilities]
+    constraints: [linear_decision_boundary]
+  - name: linear_regression
+    family: linear
+    framework: scikit-learn
+    supported_tasks: [regression]
+    strengths: [interpretable_baseline, fast_training]
+    constraints: [linear_relationship]
+  - name: knn
+    family: nearest_neighbor
+    framework: scikit-learn
+    supported_tasks: [binary_classification, multiclass_classification, regression]
+    strengths: [local_similarity, nonlinear_boundaries]
+    constraints: [requires_scaling, expensive_large_dataset_inference]
+  - name: naive_bayes
+    family: probabilistic
+    framework: scikit-learn
+    supported_tasks: [binary_classification, multiclass_classification]
+    strengths: [fast, strong_text_baseline]
+    constraints: [conditional_independence_assumption]
+  - name: random_forest
+    family: tree_ensemble
+    framework: scikit-learn
+    supported_tasks: [binary_classification, multiclass_classification, regression]
+    strengths: [nonlinear, robust_tabular_baseline]
+    constraints: [larger_artifact]
+  - name: xgboost
+    family: boosted_tree
+    framework: xgboost
+    supported_tasks: [binary_classification, multiclass_classification, regression, forecasting]
+    strengths: [tabular_performance, missing_value_handling]
+    constraints: [tuning_complexity]
+  - name: isolation_forest
+    family: tree_anomaly
+    framework: scikit-learn
+    supported_tasks: [anomaly_detection]
+    strengths: [unsupervised_outliers, scalable]
+    constraints: [score_calibration]
+  - name: multilayer_perceptron
+    family: neural_network
+    framework: pytorch
+    supported_tasks: [binary_classification, multiclass_classification, regression]
+    strengths: [nonlinear, extensible]
+    constraints: [requires_more_data, lower_interpretability]
+

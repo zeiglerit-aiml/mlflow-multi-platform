@@ -1,0 +1,42 @@
+global:
+  cloud: local
+  projectId: ""
+  region: ""
+  imageRepository: ""
+  imageTag: latest
+
+serviceAccount:
+  name: mlflow
+  annotations: {}
+
+podLabels: {}
+
+mlflow:
+  replicas: 1
+  imageName: mlflow
+  artifactRoot: ""
+  providerConfig:
+    connectionName: ""
+  extraEnv: []
+  extraContainers: []
+  serviceType: ClusterIP
+  resources:
+    requests: {cpu: 250m, memory: 512Mi}
+    limits: {cpu: "2", memory: 2Gi}
+
+api:
+  replicas: 2
+  imageName: api
+  serviceType: LoadBalancer
+  resources:
+    requests: {cpu: 200m, memory: 256Mi}
+    limits: {cpu: "1", memory: 1Gi}
+  autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 10, targetCPU: 70}
+
+modelService:
+  replicas: 2
+  imageName: model-service
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: "2", memory: 3Gi}
+  autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 10, targetCPU: 70}

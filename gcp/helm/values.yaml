@@ -1,0 +1,21 @@
+global:
+  cloud: gcp
+serviceAccount:
+  annotations: {}
+mlflow:
+  artifactRoot: gs://replace-by-build-script
+  serviceType: ClusterIP
+  extraContainers:
+    - name: cloud-sql-proxy
+      image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.18.2
+      args:
+        - --structured-logs
+        - --private-ip
+        - --port=5432
+        - "{{ .Values.mlflow.providerConfig.connectionName }}"
+      securityContext: {runAsNonRoot: true}
+      resources:
+        requests: {cpu: 100m, memory: 128Mi}
+        limits: {cpu: 500m, memory: 512Mi}
+api:
+  serviceType: LoadBalancer

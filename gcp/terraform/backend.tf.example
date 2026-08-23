@@ -1,0 +1,6 @@
+terraform {
+  backend "gcs" {
+    bucket = "replace-with-terraform-state-bucket"
+    prefix = "agentic-ml/gcp"
+  }
+}

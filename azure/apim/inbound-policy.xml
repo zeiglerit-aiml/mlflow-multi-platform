@@ -1,0 +1,16 @@
+<policies>
+  <inbound>
+    <base />
+    <validate-jwt header-name="Authorization" failed-validation-httpcode="401">
+      <openid-config url="https://login.microsoftonline.com/{{tenant-id}}/v2.0/.well-known/openid-configuration" />
+      <audiences><audience>{{api-application-id}}</audience></audiences>
+    </validate-jwt>
+    <rate-limit-by-key calls="120" renewal-period="60" counter-key="@(context.Principal?.Id ?? context.Request.IpAddress)" />
+    <set-header name="x-correlation-id" exists-action="skip">
+      <value>@(Guid.NewGuid().ToString())</value>
+    </set-header>
+  </inbound>
+  <backend><base /></backend>
+  <outbound><base /></outbound>
+  <on-error><base /></on-error>
+</policies>

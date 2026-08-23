@@ -1,0 +1,14 @@
+global:
+  cloud: azure
+serviceAccount:
+  annotations: {}
+podLabels:
+  azure.workload.identity/use: "true"
+mlflow:
+  artifactRoot: wasbs://mlflow@replace-by-build-script.blob.core.windows.net
+  serviceType: ClusterIP
+  extraEnv:
+    - name: AZURE_STORAGE_CONNECTION_STRING
+      valueFrom: {secretKeyRef: {name: mlflow-runtime, key: azureStorageConnectionString}}
+api:
+  serviceType: LoadBalancer

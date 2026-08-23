@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ml-platform-gcp
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: __GIT_REPO_URL__
+    targetRevision: __GIT_REVISION__
+    path: common/helm/platform
+    helm:
+      values: |
+        serviceAccount:
+          annotations:
+            iam.gke.io/gcp-service-account: "__GSA_EMAIL__"
+        mlflow:
+          extraContainers:
+            - name: cloud-sql-proxy
+              image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.18.2
+              args: [--structured-logs, --private-ip, --port=5432, __SQL_CONNECTION__]
+              securityContext: {runAsNonRoot: true}
+      parameters:
+        - {name: global.cloud, value: gcp}
+        - {name: global.projectId, value: __PROJECT_ID__}
+        - {name: global.region, value: __REGION__}
+        - {name: global.imageRepository, value: __IMAGE_REPOSITORY__}
+        - {name: global.imageTag, value: __IMAGE_TAG__}
+        - {name: mlflow.artifactRoot, value: "gs://__BUCKET__"}
+        - {name: mlflow.providerConfig.connectionName, value: __SQL_CONNECTION__}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ml-platform
+  syncPolicy:
+    automated: {prune: true, selfHeal: true}
+    syncOptions: [CreateNamespace=true]

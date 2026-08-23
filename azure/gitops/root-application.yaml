@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ml-platform-azure
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: __GIT_REPO_URL__
+    targetRevision: __GIT_REVISION__
+    path: common/helm/platform
+    helm:
+      values: |
+        serviceAccount:
+          annotations:
+            azure.workload.identity/client-id: "__AZURE_CLIENT_ID__"
+            azure.workload.identity/tenant-id: "__AZURE_TENANT_ID__"
+        podLabels:
+          azure.workload.identity/use: "true"
+        mlflow:
+          extraEnv:
+            - name: AZURE_STORAGE_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef: {name: mlflow-runtime, key: azureStorageConnectionString}
+      parameters:
+        - {name: global.cloud, value: azure}
+        - {name: global.imageRepository, value: __IMAGE_REPOSITORY__}
+        - {name: global.imageTag, value: __IMAGE_TAG__}
+        - {name: mlflow.artifactRoot, value: "wasbs://mlflow@__STORAGE_ACCOUNT__.blob.core.windows.net"}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ml-platform
+  syncPolicy:
+    automated: {prune: true, selfHeal: true}
+    syncOptions: [CreateNamespace=true]

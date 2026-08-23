@@ -1,0 +1,17 @@
+FROM python:3.11-slim
+
+ARG MLFLOW_VERSION=3.5.1
+ARG ARTIFACT_DEPENDENCIES=boto3
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir \
+       "mlflow[auth]==${MLFLOW_VERSION}" \
+       psycopg2-binary ${ARTIFACT_DEPENDENCIES}
+
+RUN useradd --create-home --uid 10001 mlflow
+USER 10001:10001
+WORKDIR /home/mlflow
+EXPOSE 5000
+ENTRYPOINT []
+CMD ["mlflow", "server", "--host=0.0.0.0", "--port=5000"]

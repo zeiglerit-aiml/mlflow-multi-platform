@@ -1,0 +1,169 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.serviceAccount.name }}
+  {{- with .Values.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+spec:
+  replicas: {{ .Values.mlflow.replicas }}
+  selector: {matchLabels: {app: mlflow}}
+  template:
+    metadata:
+      labels:
+        app: mlflow
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+        - name: mlflow
+          image: "{{ .Values.global.imageRepository }}/{{ .Values.mlflow.imageName }}:{{ .Values.global.imageTag }}"
+          command: ["/bin/sh", "-c"]
+          args:
+            - >-
+              mlflow server --host=0.0.0.0 --port=5000
+              --backend-store-uri="$BACKEND_STORE_URI"
+              --artifacts-destination={{ .Values.mlflow.artifactRoot | quote }}
+              --serve-artifacts
+          env:
+            - name: BACKEND_STORE_URI
+              valueFrom: {secretKeyRef: {name: mlflow-runtime, key: backendUri}}
+            {{- with .Values.mlflow.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports: [{name: http, containerPort: 5000}]
+          readinessProbe: {httpGet: {path: /health, port: http}, initialDelaySeconds: 15}
+          livenessProbe: {httpGet: {path: /health, port: http}, initialDelaySeconds: 30}
+          resources:
+            {{- toYaml .Values.mlflow.resources | nindent 12 }}
+        {{- with .Values.mlflow.extraContainers }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: mlflow}
+spec:
+  type: {{ .Values.mlflow.serviceType }}
+  selector: {app: mlflow}
+  ports: [{name: http, port: 5000, targetPort: http}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: model-service}
+spec:
+  replicas: {{ .Values.modelService.replicas }}
+  selector: {matchLabels: {app: model-service}}
+  template:
+    metadata: {labels: {app: model-service}}
+    spec:
+      containers:
+        - name: model-service
+          image: "{{ .Values.global.imageRepository }}/{{ .Values.modelService.imageName }}:{{ .Values.global.imageTag }}"
+          env: [{name: MLFLOW_TRACKING_URI, value: "http://mlflow:5000"}]
+          ports: [{name: http, containerPort: 8010}]
+          readinessProbe: {httpGet: {path: /health, port: http}}
+          resources:
+            {{- toYaml .Values.modelService.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: model-service}
+spec:
+  selector: {app: model-service}
+  ports: [{name: http, port: 8010, targetPort: http}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: agentic-api}
+spec:
+  replicas: {{ .Values.api.replicas }}
+  selector: {matchLabels: {app: agentic-api}}
+  template:
+    metadata: {labels: {app: agentic-api}}
+    spec:
+      containers:
+        - name: api
+          image: "{{ .Values.global.imageRepository }}/{{ .Values.api.imageName }}:{{ .Values.global.imageTag }}"
+          env:
+            - {name: AIOFFICE_MLFLOW_TRACKING_URI, value: "http://mlflow:5000"}
+            - {name: AIOFFICE_MODEL_SERVICE_BASE_URL, value: "http://model-service:8010"}
+            - {name: AIOFFICE_MODEL_CATALOG_PATH, value: "/app/config/model_catalog.yaml"}
+            - {name: AIOFFICE_ALGORITHM_CATALOG_PATH, value: "/app/config/algorithm_catalog.yaml"}
+          ports: [{name: http, containerPort: 8000}]
+          readinessProbe: {httpGet: {path: /health, port: http}}
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: agentic-api}
+spec:
+  type: {{ .Values.api.serviceType }}
+  selector: {app: agentic-api}
+  ports: [{name: http, port: 80, targetPort: http}]
+---
+{{- if .Values.api.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {name: agentic-api}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: agentic-api}
+  minReplicas: {{ .Values.api.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.api.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: {{ .Values.api.autoscaling.targetCPU }}}
+{{- end }}
+---
+{{- if .Values.modelService.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {name: model-service}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: model-service}
+  minReplicas: {{ .Values.modelService.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.modelService.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: {{ .Values.modelService.autoscaling.targetCPU }}}
+{{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: default-deny-ingress}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-platform-internal}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: ml-platform}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: allow-public-api}
+spec:
+  podSelector: {matchLabels: {app: agentic-api}}
+  policyTypes: [Ingress]
+  ingress:
+    - ports: [{protocol: TCP, port: 8000}]

@@ -1,0 +1,10 @@
+FROM python:3.11-slim
+WORKDIR /app
+ARG RUNTIME_REQUIREMENTS=requirements/runtime-tabular-cpu.txt
+COPY requirements ./requirements
+RUN pip install --no-cache-dir -r ${RUNTIME_REQUIREMENTS}
+COPY services/model_service.py ./model_service.py
+COPY services/mlflow_loader.py ./mlflow_loader.py
+USER 65532:65532
+EXPOSE 8010
+CMD ["uvicorn", "model_service:app", "--host", "0.0.0.0", "--port", "8010"]
