@@ -1,0 +1,31 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: python -m pip install -e '.[dev]'
+      - run: ruff check src tests
+      - run: pytest -q
+
+  platform-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - uses: azure/setup-helm@v4
+      - run: bash -n build.sh
+      - run: terraform -chdir=gcp/terraform init -backend=false && terraform -chdir=gcp/terraform validate
+      - run: terraform -chdir=azure/terraform init -backend=false && terraform -chdir=azure/terraform validate
+      - run: helm lint common/helm/platform -f gcp/helm/values.yaml
+      - run: helm lint common/helm/platform -f azure/helm/values.yaml
