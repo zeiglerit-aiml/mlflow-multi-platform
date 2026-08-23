@@ -1,6 +1,6 @@
 # Agentic Multi-Model MLflow Platform
 
-A local/GCP/Azure MLflow platform for heterogeneous model training, registration, champion/challenger lifecycle management, model-serving pools, and an agentic relay API. The Python application is shared; cloud infrastructure and deployment values remain isolated by provider.
+A local/GCP/Azure MLflow platform for model training, registration, champion/challenger lifecycle management, model-serving pools, multi-model serving, and an agentic relay API. The Python application is shared; cloud infrastructure and deployment values remain isolated by provider.
 
 ## One build entry point
 
