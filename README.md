@@ -25,7 +25,7 @@ GitOps deployment:
   --git-repo=https://github.com/example/agentic-ml-platform.git
 ```
 
-Run `./build.sh --help` for all parameters and `--destroy` behavior.
+Run `./build.sh --help` for all parameters. Cloud teardown requires `CONFIRM_DESTROY=YES` after verifying the selected GCP project or Azure subscription/resource group. Local `--destroy` only stops Compose services and retains volumes.
 
 ## Repository organization
 
