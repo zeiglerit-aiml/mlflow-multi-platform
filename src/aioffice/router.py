@@ -3,6 +3,7 @@ from time import perf_counter
 from typing import Any
 
 import httpx
+from pydantic import ValidationError
 
 from .schemas import CandidateModel, ModelResult, Prediction
 
@@ -26,7 +27,7 @@ class ModelRouter:
                 response.raise_for_status()
                 payload = response.json()
             return ModelResult.model_validate(payload)
-        except Exception as exc:  # Boundary intentionally converts transport failures.
+        except (httpx.HTTPError, ValueError, ValidationError) as exc:  # Expected transport/payload failures.
             return ModelResult(
                 model_name=candidate.model_name,
                 version=candidate.version,
