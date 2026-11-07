@@ -1,3 +1,5 @@
+import pytest
+
 from aioffice.comparison import compare_results
 from aioffice.schemas import ModelResult, Prediction, TaskType
 
@@ -21,5 +23,5 @@ def test_classification_comparison_uses_majority_and_mean_probability() -> None:
     assert comparison.agreement == 1
     assert comparison.recommended_prediction is not None
     assert comparison.recommended_prediction.label == "churn"
-    assert comparison.recommended_prediction.probability == 0.8
+    assert comparison.recommended_prediction.probability == pytest.approx(0.8)
 
