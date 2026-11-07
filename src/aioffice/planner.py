@@ -1,5 +1,4 @@
 import re
-
 from .catalog import Catalog
 from .schemas import ExecutionMode, ExecutionPlan, InferenceRequest, TaskType
 
