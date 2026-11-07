@@ -3,7 +3,6 @@ import re
 from .catalog import Catalog
 from .schemas import ExecutionMode, ExecutionPlan, InferenceRequest, TaskType
 
-
 TASK_HINTS: dict[TaskType, tuple[str, ...]] = {
     # Outcome language is stronger than a time horizon: "likely to cancel next
     # month" is classification, while "forecast next month's sales" is forecasting.
