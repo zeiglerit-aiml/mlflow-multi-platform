@@ -137,6 +137,8 @@ gcp_mode() {
   gcloud config set project "$PROJECT_ID" >/dev/null
 
   if [[ "$ACTION" == "destroy" ]]; then
+    [[ "${CONFIRM_DESTROY:-}" == "YES" ]] || fail "Cloud teardown blocked. Set CONFIRM_DESTROY=YES after verifying the GCP project."
+    gcloud config get-value project
     terraform -chdir="$tf_dir" init
     terraform -chdir="$tf_dir" destroy -auto-approve -var="project_id=$PROJECT_ID" \
       -var="region=$REGION" -var="zone=$ZONE" -var="platform_name=$PLATFORM_NAME"
@@ -195,6 +197,8 @@ azure_mode() {
   AZURE_RESOURCE_GROUP="${AZURE_RESOURCE_GROUP:-${PLATFORM_NAME}-rg}"
   local tf_dir="$ROOT_DIR/azure/terraform"
   if [[ "$ACTION" == "destroy" ]]; then
+    [[ "${CONFIRM_DESTROY:-}" == "YES" ]] || fail "Cloud teardown blocked. Set CONFIRM_DESTROY=YES after verifying the Azure subscription and resource group."
+    az account show --query "{subscription:name, id:id}" -o table
     terraform -chdir="$tf_dir" init
     terraform -chdir="$tf_dir" destroy -auto-approve \
       -var="subscription_id=$AZURE_SUBSCRIPTION_ID" \
