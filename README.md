@@ -2,6 +2,12 @@
 
 A local/GCP/Azure MLflow platform for model training, registration, champion/challenger lifecycle management, model-serving pools, multi-model serving, and an agentic relay API. The Python application is shared; cloud infrastructure and deployment values remain isolated by provider.
 
+## Repository boundary
+
+This is the reusable **platform** repository: shared MLflow/API/model-service images, common Helm chart, cloud platform foundations, and cross-provider deployment workflow live here.
+
+[mlmultimodel_serving_ai_frontdoor_app](https://github.com/zeiglerit-aiml/mlmultimodel_serving_ai_frontdoor_app) is a separate **workload/examples** repository. It contains two independently runnable application examples (a five-model API and an LLM briefing app), each with a self-contained development/deployment scaffold. Those per-app files are not a second source of truth for this platform. Keep their application-specific serving code there; extract common infrastructure only when the contracts and lifecycle are demonstrably identical. Avoid copying platform changes into both repositories.
+
 ## One build entry point
 
 ```bash
