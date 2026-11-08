@@ -163,3 +163,9 @@ uvicorn aioffice.main:app --reload --port 8000
 - Pin and scan all production images; example version tags should be reviewed during upgrades.
 
 See `docs/` for architecture, routing, dependency isolation, frontend behavior, model lifecycle, and cloud deployment details.
+
+## Portfolio ownership
+
+Canonical shared MLflow platform, common services, Helm chart, and cloud foundations. Application-specific examples remain in mlmultimodel_serving_ai_frontdoor_app.
+
+Account-wide ownership and cleanup decisions are maintained in the [WSP portfolio repository catalog](https://github.com/zeiglerit-aiml/WSP_Integrated_AI_SDLC_GVC_pl/blob/main/REPOSITORY_CATALOG.md).
