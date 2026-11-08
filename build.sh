@@ -17,6 +17,8 @@ AZURE_LOCATION="${AZURE_LOCATION:-eastus2}"
 GIT_REPO_URL="${GIT_REPO_URL:-}"
 GIT_REVISION="${GIT_REVISION:-main}"
 IMAGE_TAG="${IMAGE_TAG:-$(git -C "$ROOT_DIR" rev-parse --short HEAD 2>/dev/null || echo dev)}"
+PLAN_FILE=""
+trap '[[ -z "$PLAN_FILE" ]] || rm -f "$PLAN_FILE"' EXIT
 
 usage() {
   cat <<'EOF'
@@ -59,6 +61,21 @@ EOF
 log() { printf '\n[%s] %s\n' "$(date +%H:%M:%S)" "$*"; }
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 need() { command -v "$1" >/dev/null 2>&1 || fail "Required command not found: $1"; }
+
+terraform_plan_apply() {
+  local tf_dir="$1"
+  shift
+  PLAN_FILE="$(mktemp)"
+  chmod 600 "$PLAN_FILE"
+  terraform -chdir="$tf_dir" plan -out="$PLAN_FILE" "$@"
+  terraform -chdir="$tf_dir" show "$PLAN_FILE"
+  local approval
+  read -r -p "Review the plan above. Type APPLY to provision these resources: " approval
+  [[ "$approval" == "APPLY" ]] || fail "Terraform apply cancelled."
+  terraform -chdir="$tf_dir" apply "$PLAN_FILE"
+  rm -f "$PLAN_FILE"
+  PLAN_FILE=""
+}
 
 for arg in "$@"; do
   case "$arg" in
@@ -145,9 +162,10 @@ gcp_mode() {
     return
   fi
 
-  log "Provisioning the GCP platform"
+  [[ "${CONFIRM_APPLY:-}" == "YES" ]] || fail "Cloud deployment blocked. Set CONFIRM_APPLY=YES after verifying the GCP project and estimated cost."
+  log "Planning the GCP platform"
   terraform -chdir="$tf_dir" init
-  terraform -chdir="$tf_dir" apply -auto-approve -var="project_id=$PROJECT_ID" \
+  terraform_plan_apply "$tf_dir" -var="project_id=$PROJECT_ID" \
     -var="region=$REGION" -var="zone=$ZONE" -var="platform_name=$PLATFORM_NAME"
 
   local cluster registry_host repository bucket sql_connection gsa db_secret image_prefix db_password
@@ -207,9 +225,10 @@ azure_mode() {
     return
   fi
 
-  log "Provisioning the Azure platform"
+  [[ "${CONFIRM_APPLY:-}" == "YES" ]] || fail "Cloud deployment blocked. Set CONFIRM_APPLY=YES after verifying the Azure subscription/resource group and estimated cost."
+  log "Planning the Azure platform"
   terraform -chdir="$tf_dir" init
-  terraform -chdir="$tf_dir" apply -auto-approve \
+  terraform_plan_apply "$tf_dir" \
     -var="subscription_id=$AZURE_SUBSCRIPTION_ID" \
     -var="resource_group_name=$AZURE_RESOURCE_GROUP" \
     -var="location=$AZURE_LOCATION" -var="platform_name=$PLATFORM_NAME"
