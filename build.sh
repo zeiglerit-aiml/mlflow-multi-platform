@@ -117,8 +117,11 @@ build_images() {
 }
 
 install_argocd() {
+  : "${ARGOCD_CHART_VERSION:?Set ARGOCD_CHART_VERSION to an explicit Argo CD Helm chart version}"
   helm repo add argo https://argoproj.github.io/argo-helm --force-update >/dev/null
-  helm upgrade --install argocd argo/argo-cd --namespace argocd --create-namespace --wait
+  helm repo update
+  helm upgrade --install argocd argo/argo-cd --version "$ARGOCD_CHART_VERSION" \
+    --namespace argocd --create-namespace --wait
 }
 
 local_mode() {
