@@ -31,7 +31,9 @@ GitOps deployment:
   --git-repo=https://github.com/example/agentic-ml-platform.git
 ```
 
-For `--gitops`, also set `ARGOCD_CHART_VERSION` to a concrete chart release; the helper does not install an unpinned chart.\n\nRun `./build.sh --help` for all parameters. Cloud provisioning requires `CONFIRM_APPLY=YES`, displays a saved Terraform plan, and requires typing `APPLY` before resources are created. Cloud teardown requires `CONFIRM_DESTROY=YES` after verifying the selected GCP project or Azure subscription/resource group. Local `--destroy` only stops Compose services and retains volumes.
+For `--gitops`, also set `ARGOCD_CHART_VERSION` to a concrete chart release; the helper does not install an unpinned chart.
+
+Run `./build.sh --help` for all parameters. Cloud provisioning requires `CONFIRM_APPLY=YES`, displays a saved Terraform plan, and requires typing `APPLY` before resources are created. Cloud teardown requires `CONFIRM_DESTROY=YES` after verifying the selected GCP project or Azure subscription/resource group. Local `--destroy` only stops Compose services and retains volumes.
 
 ## Repository organization
 
