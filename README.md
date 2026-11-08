@@ -12,8 +12,8 @@ This is the reusable **platform** repository: shared MLflow/API/model-service im
 
 ```bash
 ./build.sh --local
-./build.sh --cloud=gcp --project=my-gcp-project
-./build.sh --cloud=azure --subscription=00000000-0000-0000-0000-000000000000
+CONFIRM_APPLY=YES ./build.sh --cloud=gcp --project=my-gcp-project
+CONFIRM_APPLY=YES ./build.sh --cloud=azure --subscription=00000000-0000-0000-0000-000000000000
 ```
 
 `--cloud=gpc` is accepted as an alias for `gcp`.
@@ -31,7 +31,7 @@ GitOps deployment:
   --git-repo=https://github.com/example/agentic-ml-platform.git
 ```
 
-Run `./build.sh --help` for all parameters. Cloud teardown requires `CONFIRM_DESTROY=YES` after verifying the selected GCP project or Azure subscription/resource group. Local `--destroy` only stops Compose services and retains volumes.
+Run `./build.sh --help` for all parameters. Cloud provisioning requires `CONFIRM_APPLY=YES`, displays a saved Terraform plan, and requires typing `APPLY` before resources are created. Cloud teardown requires `CONFIRM_DESTROY=YES` after verifying the selected GCP project or Azure subscription/resource group. Local `--destroy` only stops Compose services and retains volumes.
 
 ## Repository organization
 
