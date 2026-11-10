@@ -1,5 +1,9 @@
+import sys
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services"))
 import model_service
 
 
@@ -24,7 +28,10 @@ def test_prediction_uses_requested_alias(monkeypatch):
 
 
 def test_missing_registry_model_returns_503(monkeypatch):
-    monkeypatch.setattr(model_service, "load_model", lambda uri: (_ for _ in ()).throw(RuntimeError()))
+    def fail_to_load(uri):
+        raise RuntimeError("registry unavailable")
+
+    monkeypatch.setattr(model_service, "load_model", fail_to_load)
     client = TestClient(model_service.app)
     response = client.post(
         "/v1/models/customer-churn:predict",
